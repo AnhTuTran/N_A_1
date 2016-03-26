@@ -45,7 +45,18 @@ public class ServerHandler implements Runnable{
 			else if (i == (Event.DownloadFile).ordinal()){
 				out.writeUTF(Integer.toString((Event.DownloadFile).ordinal() + 1));
 				System.out.println("DownloadFile ACK");
-				System.out.println(in.readUTF());
+				
+				//System.out.println(in.readUTF());
+			}
+			else if (i == (Event.ListFilesCanDownload).ordinal()){
+				System.out.println("ListFilesCanDownload ACK");
+				out.writeUTF(Integer.toString((Event.ListFilesCanDownload).ordinal() + 1));
+				
+				out.writeUTF(Integer.toString(fileInfoList.size()));
+				for (FileInfoServer info : fileInfoList) {
+					out.writeUTF(info.fileName);
+				}
+				//System.out.println(socket4Peer.getRemoteSocketAddress());
 			}
 			else if (i == (Event.UploadFile).ordinal()){
 				System.out.println("UploadFile ACK");
