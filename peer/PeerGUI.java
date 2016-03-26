@@ -1,7 +1,10 @@
+import java.awt.BorderLayout;
 import java.awt.EventQueue;
 
 import javax.swing.JFrame;
 import javax.swing.SpringLayout;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import protocol.Event;
 
@@ -12,6 +15,8 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.awt.event.ActionEvent;
+import javax.swing.JTextArea;
+import javax.swing.JList;
 
 public class PeerGUI {
 
@@ -48,7 +53,7 @@ public class PeerGUI {
 	 */
 	private void initialize() {
 		frame = new JFrame();
-		frame.setBounds(100, 100, 450, 300);
+		frame.setBounds(100, 100, 650, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		SpringLayout springLayout = new SpringLayout();
 		frame.getContentPane().setLayout(springLayout);
@@ -91,5 +96,46 @@ public class PeerGUI {
 		springLayout.putConstraint(SpringLayout.NORTH, btnUpload, 22, SpringLayout.SOUTH, btnChooseFileTo);
 		springLayout.putConstraint(SpringLayout.WEST, btnUpload, 0, SpringLayout.WEST, btnConnect);
 		frame.getContentPane().add(btnUpload);
+		
+		JTextArea textArea = new JTextArea();
+		springLayout.putConstraint(SpringLayout.NORTH, textArea, 0, SpringLayout.NORTH, btnConnect);
+		springLayout.putConstraint(SpringLayout.WEST, textArea, 20, SpringLayout.EAST, btnChooseFileTo);
+		springLayout.putConstraint(SpringLayout.SOUTH, textArea, 0, SpringLayout.SOUTH, btnUpload);
+		springLayout.putConstraint(SpringLayout.EAST, textArea, 268, SpringLayout.EAST, btnConnect);
+		frame.getContentPane().add(textArea);
+		
+		JButton btnListFile = new JButton("List file ");
+		btnListFile.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				peer.connectToServer(Event.ListFilesCanDownload);
+				textArea.setText(null);
+				for (String str : peer.filesCanDownload) {
+					textArea.append(str + "\n");;
+				}
+				///////////
+				JList list = new JList(peer.filesCanDownload.toArray());
+				list.addListSelectionListener(new ListSelectionListener() {
+					@SuppressWarnings("deprecation")
+					public void valueChanged(ListSelectionEvent event) {
+						// TODO Auto-generated method stub
+						if (event.getValueIsAdjusting()) 
+							System.out.println("Choosed :" + list.getSelectedValue());
+					}
+				});
+				
+				frame.getContentPane().add(list, BorderLayout.CENTER);
+								
+			}
+		});
+		springLayout.putConstraint(SpringLayout.NORTH, btnListFile, 19, SpringLayout.SOUTH, textArea);
+		springLayout.putConstraint(SpringLayout.WEST, btnListFile, 0, SpringLayout.WEST, textArea);
+		frame.getContentPane().add(btnListFile);
+		
+		JButton btnNewButton = new JButton("Download");
+		springLayout.putConstraint(SpringLayout.NORTH, btnNewButton, 0, SpringLayout.NORTH, btnListFile);
+		springLayout.putConstraint(SpringLayout.EAST, btnNewButton, 0, SpringLayout.EAST, textArea);
+		frame.getContentPane().add(btnNewButton);
+		
+				
 	}
 }

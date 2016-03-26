@@ -11,6 +11,7 @@ public class Peer {
 	Socket client;
 	List<FileInfoPeer> listFileInfo = new ArrayList<FileInfoPeer>();
 	FileInfoPeer fileInfo;
+	List<String> filesCanDownload = new ArrayList<String>();
 	
 	boolean connectToServer(Event event) {
 		try {
@@ -36,9 +37,13 @@ public class Peer {
 					System.out.println("UploadFile");
 					upLoadFileAction(in, out);
 					break;
+				case ListFilesCanDownload:
+					System.out.println("ListFilesCanDownload");
+					filesCanDownloadHandler(in);
+					break;
 				case DownloadFile:
 					System.out.println("DownloadFile");
-					//func
+					//filesCanDownloadHandler(in);
 					break;
 				default:
 					System.out.println("Nop");
@@ -94,6 +99,26 @@ public class Peer {
 			System.out.println("Find already in list");
 		}
 		
+	}
+	
+	void filesCanDownloadHandler(DataInputStream in) throws NumberFormatException, IOException {
+		int numberOfFiles = Integer.parseInt(in.readUTF());
+		
+		for (int i = 0; i < numberOfFiles; i++) {
+			String str = in.readUTF();
+			boolean isInList = false;
+			
+			for (String s : filesCanDownload) {
+				if (s.equals(str)) {
+					isInList = true;
+					break;
+				}
+			}
+			if (!isInList) {
+				filesCanDownload.add(str);
+			}
+			
+		}
 	}
 		
 	
