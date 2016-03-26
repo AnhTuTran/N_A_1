@@ -5,6 +5,8 @@ public enum Event {
 	ConnectingToServerACK,
 	UploadFile,
 	UploadFileACK,
+	ListFilesCanDownload,
+	ListFilesCanDownloadACK,
 	DownloadFile,
 	DownloadFileACK
 }
