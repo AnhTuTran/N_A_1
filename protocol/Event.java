@@ -8,5 +8,8 @@ public enum Event {
 	ListFilesCanDownload,
 	ListFilesCanDownloadACK,
 	DownloadFile,
-	DownloadFileACK
+	DownloadFileACK,
+	Nop,	// write at the end
+	WantChunkTh,
+	EndSharingFile
 }
