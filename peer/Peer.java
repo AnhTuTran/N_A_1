@@ -12,10 +12,15 @@ public class Peer {
 	List<FileInfoPeer> listFileInfo = new ArrayList<FileInfoPeer>();
 	FileInfoPeer fileInfo;
 	List<String> filesCanDownload = new ArrayList<String>();
+	String fileNameToDownload;
+	boolean isConnected = false;
 	
 	boolean connectToServer(Event event) {
 		try {
-			client = new Socket(ServerInfo.serverName, ServerInfo.serverPort);
+			if (!isConnected && event == Event.ConnectingToServer) {
+				client = new Socket(ServerInfo.serverName, ServerInfo.serverPort);
+				isConnected = true;
+			}
 			
 			OutputStream outToServer = client.getOutputStream();
 			InputStream inFromServer = client.getInputStream();
@@ -39,11 +44,12 @@ public class Peer {
 					break;
 				case ListFilesCanDownload:
 					System.out.println("ListFilesCanDownload");
-					filesCanDownloadHandler(in);
+					filesCanDownloadHandler(in, out);
 					break;
 				case DownloadFile:
 					System.out.println("DownloadFile");
-					//filesCanDownloadHandler(in);
+					downloadFileAction(in,out);
+					System.out.println("End download");
 					break;
 				default:
 					System.out.println("Nop");
@@ -53,22 +59,20 @@ public class Peer {
 				
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
+			System.err.println("Nop1");
 		} catch (IOException e) {
 			e.printStackTrace();
+			System.err.println("Nop2");
 		}
 		return false;
 	
 	}
 	
-	public static void main(String[] args) {
-		Peer p1 = new Peer();
-		p1.connectToServer(Event.ConnectingToServer);
-	}
-	
 	void connectToSeverAction(DataInputStream in, DataOutputStream out) throws IOException {
 		
-		out.writeUTF((client.getLocalAddress().toString().substring(1)));
-		System.out.println("Sending host ip to server");
+		out.writeUTF((client.getLocalSocketAddress().toString().substring(1)));
+		System.out.println("Sending host ip and port to server");
+		//System.out.println(client.getLocalSocketAddress() + "  " + client.getRemoteSocketAddress());
 	}
 	
 	void upLoadFileAction(DataInputStream in, DataOutputStream out) throws IOException {
@@ -85,13 +89,19 @@ public class Peer {
 			Arrays.fill(fileInfo.chunkStatus, true);
 			listFileInfo.add(fileInfo);
 			
-			out.writeUTF((client.getLocalAddress().toString().substring(1)));
+			out.writeUTF((client.getLocalSocketAddress().toString().substring(1)));
 			out.writeUTF(fileInfo.fileName);
 			out.writeUTF(Integer.toString(fileInfo.numberOfChunks));
 			
 			System.out.println(fileInfo.fileName);
 			System.out.println(fileInfo.numberOfChunks);
 			System.out.println("Sending info to server");
+			
+			//System.out.println(in.readInt());
+			
+			Runnable r = new ListenToPeerHandler(fileInfo, in.readInt());
+			Thread t = new Thread(r);
+			t.start();
 			
 			
 		}
@@ -101,9 +111,10 @@ public class Peer {
 		
 	}
 	
-	void filesCanDownloadHandler(DataInputStream in) throws NumberFormatException, IOException {
+	void filesCanDownloadHandler(DataInputStream in, DataOutputStream out) 
+			throws NumberFormatException, IOException {
+
 		int numberOfFiles = Integer.parseInt(in.readUTF());
-		
 		for (int i = 0; i < numberOfFiles; i++) {
 			String str = in.readUTF();
 			boolean isInList = false;
@@ -121,5 +132,46 @@ public class Peer {
 		}
 	}
 		
-	
+	void downloadFileAction (DataInputStream in, DataOutputStream out) {
+		try {
+			out.writeUTF(fileNameToDownload);
+			fileInfo = new FileInfoPeer(in.readUTF(),System.getProperty("user.dir"), false);
+			fileInfo.numberOfChunks = in.readInt();
+			fileInfo.chunkStatus = new boolean[fileInfo.numberOfChunks];
+			Arrays.fill(fileInfo.chunkStatus, false);
+			
+			boolean isNameInList = false;
+			for (FileInfoPeer fi : listFileInfo) {
+				if (fi.fileName.equals(fileInfo.fileName)) {
+					isNameInList = true;
+					break;
+				}
+			}
+			
+			if (!isNameInList) { 
+				listFileInfo.add(fileInfo);
+			}
+			else {
+				System.out.println("Find already in list");
+			}
+			
+			System.out.println("Connect to peer server");
+			int size = in.readInt();	//	 number of peers have file
+			System.out.println(size + "size");
+			for (FileInfoPeer fi : listFileInfo) {
+				if (fi.fileName.equals(fileNameToDownload)) {
+					for (int i = 0; i < size; i++) {
+						Socket peerSocket = new Socket(in.readUTF(), in.readInt());
+						Runnable r = new FileSharingHandler(fileInfo, peerSocket, FileSharingHandler.Download);
+						Thread t = new Thread(r);
+						t.start();
+					}
+					break;
+				}
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 }

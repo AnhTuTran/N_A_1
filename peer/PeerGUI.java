@@ -14,9 +14,11 @@ import javax.swing.JFileChooser;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.awt.event.ActionEvent;
 import javax.swing.JTextArea;
 import javax.swing.JList;
+import javax.swing.JLabel;
 
 public class PeerGUI {
 
@@ -43,6 +45,8 @@ public class PeerGUI {
 
 	/**
 	 * Create the application.
+	 * @throws IOException 
+	 * @throws UnknownHostException 
 	 */
 	public PeerGUI() {
 		initialize();
@@ -85,7 +89,8 @@ public class PeerGUI {
 		btnUpload.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				try {
-					peer.fileInfo = new FileInfoPeer(file.getName(), file.getParent());
+					peer.fileInfo = new FileInfoPeer(file.getName(), file.getParent(), true);
+					
 					peer.connectToServer(Event.UploadFile);
 				} catch (IOException e1) {
 					e1.printStackTrace();
@@ -114,12 +119,25 @@ public class PeerGUI {
 				}
 				///////////
 				JList list = new JList(peer.filesCanDownload.toArray());
+				
 				list.addListSelectionListener(new ListSelectionListener() {
 					@SuppressWarnings("deprecation")
 					public void valueChanged(ListSelectionEvent event) {
-						// TODO Auto-generated method stub
-						if (event.getValueIsAdjusting()) 
-							System.out.println("Choosed :" + list.getSelectedValue());
+						if (event.getValueIsAdjusting()) { 
+							int fileIndex = list.getSelectedIndex();
+							System.out.println("Downloading file: " + peer.filesCanDownload.get(fileIndex));
+							peer.fileNameToDownload = peer.filesCanDownload.get(fileIndex);
+						//	try {
+								
+								//peer.fileInfo = new FileInfoPeer(peer.fileNameToDownload, System.getProperty("user.dir"));
+						//	} catch (IOException e) {
+						//		// TODO Auto-generated catch block
+						//		e.printStackTrace();
+						//	}
+							peer.connectToServer(Event.DownloadFile);
+							
+						}
+						
 					}
 				});
 				
@@ -135,6 +153,11 @@ public class PeerGUI {
 		springLayout.putConstraint(SpringLayout.NORTH, btnNewButton, 0, SpringLayout.NORTH, btnListFile);
 		springLayout.putConstraint(SpringLayout.EAST, btnNewButton, 0, SpringLayout.EAST, textArea);
 		frame.getContentPane().add(btnNewButton);
+		
+		JLabel lblPeer = new JLabel("Peer");
+		springLayout.putConstraint(SpringLayout.WEST, lblPeer, 0, SpringLayout.WEST, btnConnect);
+		springLayout.putConstraint(SpringLayout.SOUTH, lblPeer, -6, SpringLayout.NORTH, btnConnect);
+		frame.getContentPane().add(lblPeer);
 		
 				
 	}

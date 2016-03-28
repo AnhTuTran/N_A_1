@@ -18,14 +18,15 @@ public class FileInfoPeer {
 	boolean []chunkStatus;
 	public static final int maxFileSize = 256*1024;	//256KB
 	
-	public FileInfoPeer(String name, String path) throws IOException {
+	public FileInfoPeer(String name, String path, boolean upOrDown) throws IOException {
 		// TODO Auto-generated constructor stub
 		fileName = name;
 		this.path = path;
-		//numberOfChunks = 
-		getNumberOfChunks();
-		chunkStatus = new boolean[numberOfChunks];
-		Arrays.fill(chunkStatus, false);		
+		if (upOrDown) {
+			getNumberOfChunks(); 
+			chunkStatus = new boolean[numberOfChunks];
+			Arrays.fill(chunkStatus, false);
+		}
 	}
 	
 	void getNumberOfChunks() {
@@ -88,6 +89,8 @@ public class FileInfoPeer {
 		try (BufferedOutputStream outputStream = new BufferedOutputStream(new FileOutputStream(myFile))) {
 			for (File chunk:list) {
 				Files.copy(chunk.toPath(), outputStream);
+				chunk.delete();
+				
 			}
 		}
 	}
