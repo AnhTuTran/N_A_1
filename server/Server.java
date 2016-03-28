@@ -14,11 +14,12 @@ public class Server {
 	public static void main(String[] args) {		
 		try {
 			ServerSocket serverSocket = new ServerSocket(ServerInfo.serverPort);
-			List<PeerStatus> peerList = new ArrayList<PeerStatus>();
-			List<FileInfoServer> fileInfoList = new ArrayList<FileInfoServer>();
+			List<PeerStatus> peerList = new ArrayList<PeerStatus>();				// synchronize
+			List<FileInfoServer> fileInfoList = new ArrayList<FileInfoServer>();	// synchronize
+			ServerInfo serverInfo = new ServerInfo();								// synchronize
 			while (true) {
 				Socket socket4Peer = serverSocket.accept();
-				Runnable r = new ServerHandler(socket4Peer, peerList, fileInfoList);
+				Runnable r = new ServerHandler(socket4Peer, peerList, fileInfoList, serverInfo);
 				Thread t = new Thread(r);
 				t.start();
 				//System.out.println("end");

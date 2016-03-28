@@ -4,22 +4,22 @@ import java.util.List;
 public class FileInfoServer {
 	String fileName;
 	int maxChunk;
-	List<String> peersHaveFile = new ArrayList<String>();
+	List<peerPortToSharingFile> peersHaveFile = new ArrayList<peerPortToSharingFile>();
 	
-	public FileInfoServer(String name, int MaxChunk, String ip) {
+	public FileInfoServer(String name, int MaxChunk, peerPortToSharingFile peerInfo) {
 		fileName = name;
 		maxChunk = MaxChunk;
 		boolean isInList = false;
 		
-		for (String str : peersHaveFile) {
-			if (str.equals(ip)) {
+		for (peerPortToSharingFile p : peersHaveFile) {
+			if (p.ip.equals(peerInfo.ip)) {
 				isInList = false;
 				break;
 			}
 		}
 		
 		if (!isInList) {
-			peersHaveFile.add(ip);
+			peersHaveFile.add(peerInfo);
 		}
 	}
 }
